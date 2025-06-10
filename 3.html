@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Full Project Demo</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    header, footer { background: #333; color: #fff; padding: 1em; text-align: center; }
+    nav a { color: #fff; margin: 0 1em; text-decoration: none; }
+    section { padding: 2em; }
+    h2 { color: #333; }
+    .project-card, .product-card { border: 1px solid #ddd; padding: 1em; margin: 1em 0; border-radius: 5px; }
+    .controls select, input, button, textarea { margin: 0.5em 0; padding: 0.5em; }
+    .product-grid { display: flex; flex-wrap: wrap; gap: 1em; }
+    .product-card { flex: 1 1 calc(30% - 1em); box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    #taskList li { list-style: none; margin: 0.5em 0; padding: 0.5em; background: #f9f9f9; }
+    #taskList li.completed { text-decoration: line-through; color: gray; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Full Project Demo</h1>
+  <nav>
+    <a href="#portfolio">Portfolio</a>
+    <a href="#todo">To-Do List</a>
+    <a href="#products">Products</a>
+  </nav>
+</header>
+
+<!-- Portfolio Section -->
+<section id="portfolio">
+  <h2>About Me</h2>
+  <p>I'm a web developer skilled in HTML, CSS, and JavaScript.</p>
+
+  <h2>My Projects</h2>
+  <div class="project-card">
+    <h3>Portfolio Website</h3>
+    <p>A personal portfolio to showcase my work.</p>
+  </div>
+
+  <h2>Contact Me</h2>
+  <form onsubmit="alert('Message Sent!'); return false;">
+    <input type="text" placeholder="Your Name" required><br>
+    <input type="email" placeholder="Your Email" required><br>
+    <textarea placeholder="Your Message"></textarea><br>
+    <button type="submit">Send</button>
+  </form>
+</section>
+
+<!-- To-Do List Section -->
+<section id="todo">
+  <h2>To-Do List</h2>
+  <input type="text" id="taskInput" placeholder="Add a new task">
+  <button onclick="addTask()">Add</button>
+  <ul id="taskList"></ul>
+</section>
+
+<!-- Product Listing Section -->
+<section id="products">
+  <h2>Product Listing</h2>
+  <div class="controls">
+    <select id="categoryFilter" onchange="filterProducts()">
+      <option value="all">All Categories</option>
+      <option value="electronics">Electronics</option>
+      <option value="clothing">Clothing</option>
+    </select>
+    <select id="sortOption" onchange="sortProducts()">
+      <option value="price-asc">Price: Low to High</option>
+      <option value="price-desc">Price: High to Low</option>
+      <option value="rating-desc">Rating: High to Low</option>
+    </select>
+  </div>
+  <div id="productContainer" class="product-grid"></div>
+</section>
+
+<footer>
+  <p>&copy; 2025 Full Project Demo</p>
+</footer>
+
+<script>
+  // To-Do List Logic
+  function addTask() {
+    const taskInput = document.getElementById('taskInput');
+    const task = taskInput.value.trim();
+    if (task === '') return;
+    const li = document.createElement('li');
+    li.textContent = task;
+    li.onclick = () => li.classList.toggle('completed');
+    li.ondblclick = () => { li.remove(); saveTasks(); };
+    document.getElementById('taskList').appendChild(li);
+    taskInput.value = '';
+    saveTasks();
+  }
+  function saveTasks() {
+    const tasks = Array.from(document.querySelectorAll('#taskList li')).map(li => ({
+      text: li.textContent,
+      completed: li.classList.contains('completed')
+    }));
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
+  function loadTasks() {
+    const saved = JSON.parse(localStorage.getItem('tasks')) || [];
+    saved.forEach(t => {
+      const li = document.createElement('li');
+      li.textContent = t.text;
+      if (t.completed) li.classList.add('completed');
+      li.onclick = () => { li.classList.toggle('completed'); saveTasks(); };
+      li.ondblclick = () => { li.remove(); saveTasks(); };
+      document.getElementById('taskList').appendChild(li);
+    });
+  }
+  loadTasks();
+
+  // Product Listing Logic
+  const products = [
+    { name: "Smartphone", price: 299, rating: 4.5, category: "electronics" },
+    { name: "Laptop", price: 799, rating: 4.7, category: "electronics" },
+    { name: "T-Shirt", price: 25, rating: 4.0, category: "clothing" },
+    { name: "Jeans", price: 45, rating: 4.3, category: "clothing" },
+    { name: "Headphones", price: 59, rating: 4.6, category: "electronics" },
+  ];
+
+  function renderProducts() {
+    const container = document.getElementById('productContainer');
+    container.innerHTML = '';
+    products.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'product-card';
+      card.innerHTML = `<h3>${p.name}</h3><p>Price: $${p.price}</p><p>Rating: ${p.rating}</p>`;
+      card.setAttribute('data-category', p.category);
+      card.setAttribute('data-price', p.price);
+      card.setAttribute('data-rating', p.rating);
+      container.appendChild(card);
+    });
+  }
+  renderProducts();
+
+  function filterProducts() {
+    const category = document.getElementById('categoryFilter').value;
+    const cards = document.querySelectorAll('.product-card');
+    cards.forEach(c => {
+      c.style.display = (category === 'all' || c.getAttribute('data-category') === category) ? 'block' : 'none';
+    });
+  }
+
+  function sortProducts() {
+    const option = document.getElementById('sortOption').value;
+    const container = document.getElementById('productContainer');
+    const cards = Array.from(container.children);
+    cards.sort((a, b) => {
+      if (option === 'price-asc') return a.getAttribute('data-price') - b.getAttribute('data-price');
+      if (option === 'price-desc') return b.getAttribute('data-price') - a.getAttribute('data-price');
+      if (option === 'rating-desc') return b.getAttribute('data-rating') - a.getAttribute('data-rating');
+    });
+    container.innerHTML = '';
+    cards.forEach(c => container.appendChild(c));
+  }
+</script>
+
+</body>
+</html>
